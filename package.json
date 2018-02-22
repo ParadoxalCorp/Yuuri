@@ -1,0 +1,15 @@
+{
+    "name": "Yuuri",
+    "version": "1.0.0",
+    "description": "Yuuri - A modular discord bot framework",
+    "main": "index.js",
+    "author": "ParadoxOrigins",
+    "license": "Apache-2.0",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "chalk": "^2.3.1",
+        "draftlog": "^1.0.12"
+    }
+}
