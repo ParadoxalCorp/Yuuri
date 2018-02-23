@@ -4,12 +4,14 @@
     "description": "Yuuri - A modular discord bot framework",
     "main": "index.js",
     "author": "ParadoxOrigins",
-    "license": "GPL-3.0-only",
+    "repository": "github:ParadoxalCorp/Yuuri",
+    "license": "GPL-3.0",
     "scripts": {
         "start": "node index.js"
     },
     "dependencies": {
         "chalk": "^2.3.1",
-        "draftlog": "^1.0.12"
+        "draftlog": "^1.0.12",
+        "rethinkdb": "^2.3.3"
     }
 }

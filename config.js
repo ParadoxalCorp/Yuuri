@@ -5,6 +5,12 @@ module.exports = {
     ownerID: "your_ID",
     //The token of the bot application to connect to, it is required.
     token: "",
+    database: {
+        //Unless the database is on another server, the host should be localhost
+        host: "localhost",
+        //The port should be the client driver port, not the administrative HTTP connection nor the intracluster one
+        port: 8080
+    },
     //Additional API keys that the bot use for commands for example
     apiKeys: {
         discordBotList: "",
