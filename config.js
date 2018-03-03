@@ -3,6 +3,7 @@ module.exports = {
     admins: ["your_ID", "trusted_collaborator_ID", "another_trusted_collaborator_ID"],
     prefix: "uwu.",
     ownerID: "your_ID",
+    botID: "bot_ID",
     //The token of the bot application to connect to, it is required.
     token: "",
     database: {
@@ -13,15 +14,7 @@ module.exports = {
     },
     //Additional API keys that the bot use for commands for example
     apiKeys: {
-        discordBotList: "",
-        terminalBotList: "",
-        weebShImage: "",
-        malCredentials: {
-            name: "",
-            password: ""
-        },
         raven: "",
-        whatAnime: "",
     },
     //Some customizable bot features options, purpose is to be able to quickly change critical values without having to do so in 100 files 
     options: {}

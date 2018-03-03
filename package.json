@@ -12,6 +12,7 @@
     "dependencies": {
         "chalk": "^2.3.1",
         "draftlog": "^1.0.12",
+        "eris": "^0.8.5",
         "rethinkdb": "^2.3.3"
     }
 }
