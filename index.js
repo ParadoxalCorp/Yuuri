@@ -5,11 +5,16 @@ const log = require('./util/modules/log');
 const Collection = require('./util/helpers/Collection');
 const Eris = require('eris');
 const fs = require('fs');
+const sleep = require('./util/modules/sleep');
 
 if (!config.token) {
     log.error('No token is specified in the config, launch aborted');
     process.exit(0);
 }
+
+process.on(`unhandledRejection`, err => log.error(err.stack || err));
+process.on(`uncaughtException`, err => log.error(err.stack || err));
+process.on(`error`, err => log.error(err.stack || err));
 
 class Yuuri extends Eris {
     constructor(token, options) {
@@ -23,6 +28,7 @@ class Yuuri extends Eris {
         this.aliases = new Collection();
         this.config = config;
         this.database = new(require('./util/helpers/DatabaseWrapper'))(this);
+        this.refs = require('./util/helpers/references');
     }
 }
 
@@ -41,8 +47,9 @@ const client = new Yuuri(config.token, {
     if (!process.argv.includes('--no-db')) {
         log.draft('connectingToDb', `Attempting to connect to the database server at ${config.database.host}:${config.database.port}`);
         await client.database.connect()
-            .catch(err => {
+            .catch(async(err) => {
                 log.endDraft('connectingToDb', `Failed to connect to the database server: ${err}`, false);
+                await sleep(500);
                 process.exit(0);
             });
         log.endDraft('connectingToDb', `Successfully connected to the database at ${config.database.host}:${config.database.port}`);

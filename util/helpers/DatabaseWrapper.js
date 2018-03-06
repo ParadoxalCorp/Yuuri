@@ -1,14 +1,27 @@
 const log = require('../modules/log');
 const sleep = require('../modules/sleep');
+const references = require('./references');
 
 class DatabaseWrapper {
     /**
      * Wraps the most important methods of RethinkDB and does smart things in the background
      * @param {object} client - The client (or bot) instance
+     * @param {function} updateFunc - Optional, the function that should be called to update the retrieved entries from the database before returning them. This update function will be called instead of the default update strategy, with the "data" and "type" arguments, which are respectively the database entry and the type of the database entry (either "guild" or "user"). The update function must return an object, this is the object that the DatabaseWrapper.getGuild() and DatabaseWrapper.getUser() methods will return.
+     * @example 
+     * //Context: In this example, the old user data model used to have its "boolean" property containing either 1 or 0, and we want to update it to either true or false
+     * new DatabaseWrapper(client, (data, type) => {
+     *   if (type === "guild") {
+     *     return data; 
+     *   } else {
+     *     data.boolean = data.boolean === 1 ? true : false;
+     *     return data;   
+     *   }
+     * });
      */
-    constructor(client) {
+    constructor(client, updateFunc) {
         this.conn = {};
         this.rethink = require("rethinkdb");
+        this.updateFunc = updateFunc;
         this.guildData = this.rethink.db('data').table('guilds');
         this.userData = this.rethink.db('data').table('users');
         this.client = client;
@@ -90,11 +103,11 @@ class DatabaseWrapper {
     getGuild(id) {
         return new Promise(async(resolve, reject) => {
             if (this.guilds.has(id)) {
-                return this.guilds.get(id);
+                return resolve(this._updateDataModel(this.guilds.get(id), 'guild'));
             }
             this.guildData.get(id).run(this.conn)
                 .then(data => {
-                    resolve(data);
+                    resolve(this._updateDataModel(data, 'guild'));
                 })
                 .catch(err => {
                     reject(err);
@@ -111,17 +124,30 @@ class DatabaseWrapper {
     getUser(id) {
         return new Promise(async(resolve, reject) => {
             if (this.users.has(id)) {
-                return this.users.get(id);
+                return resolve(this._updateDataModel(this.users.get(id), 'user'));
             }
             this.userData.get(id).run(this.conn)
                 .then(data => {
-                    resolve(data);
+                    resolve(this._updateDataModel(data, 'user'));
                 })
                 .catch(err => {
                     reject(err);
                     this.client.emit('error', err);
                 });
         });
+    }
+
+    _updateDataModel(data, type) {
+        if (this.updateFunc) {
+            return this.updateFunc(data, type);
+        }
+        const defaultDataModel = type === "guild" ? references.guildEntry(data.id) : references.userEntry(data.id);
+        for (const key in data) {
+            if (defaultDataModel[key]) {
+                defaultDataModel[key] = data[key];
+            }
+        }
+        return defaultDataModel;
     }
 
     /**
@@ -132,8 +158,8 @@ class DatabaseWrapper {
      */
     set(data, type) {
         return new Promise(async(resolve, reject) => {
-            type = type === "guild" ? "guild" : "user";
-            this[type].get(data.id).replace(data, { returnChanges: true }).run(this.conn)
+            type = type === "guild" ? "guildData" : "userData";
+            this[type].get(data.id).replace(data, { returnChanges: "always" }).run(this.conn)
                 .then(result => {
                     resolve(result.changes[0].new_val);
                 })

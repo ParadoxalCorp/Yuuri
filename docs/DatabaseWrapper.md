@@ -1,10 +1,20 @@
 <a name="DatabaseWrapper"></a>
 
+### Update strategy
+
+There is a default update strategy, as in, whenever DatabaseWrapper.getGuild() or DatabaseWrapper.getUser() is used,
+The database entry will be "updated" to the latest data model in /util/helpers/references.js 
+This behavior can be quite useful if properties are added to the data model, there won't be a need to anticipate the possibility that these new props will be missing,
+as the changes will be reflected and always "up-to-date" objects will be returned from these methods.
+However, this update behavior is quite simple and basically just "merge" the database entry and the data model in /util/helpers/references.js 
+as in, all properties that the default data model has in common with the database entry will get the values these properties have in the database entry, then, this object will be returned.
+If the changes to the data model are too important for the default update strategy to take care of it, a update function may be passed to the constructor.
+
 ## DatabaseWrapper
 **Kind**: global class
 
 * [DatabaseWrapper](#DatabaseWrapper)
-    * [new DatabaseWrapper(client)](#new_DatabaseWrapper_new)
+    * [new DatabaseWrapper(client, updateFunc)](#new_DatabaseWrapper_new)
     * [.init()](#DatabaseWrapper+init) ⇒ <code>Promise.&lt;void&gt;</code>
     * [.connect([host], [port])](#DatabaseWrapper+connect) ⇒ <code>Promise.&lt;object&gt;</code>
     * [.getGuild(id)](#DatabaseWrapper+getGuild) ⇒ <code>Promise.&lt;object&gt;</code>
@@ -15,13 +25,27 @@
 
 <a name="new_DatabaseWrapper_new"></a>
 
-### new DatabaseWrapper(client)
+### new DatabaseWrapper(client, updateFunc)
 Wraps the most important methods of RethinkDB and does smart things in the background
 
 
 | Param | Type | Description |
 | --- | --- | --- |
 | client | <code>object</code> | The client (or bot) instance |
+| updateFunc | <code>function</code> | Optional, the function that should be called to update the retrieved entries from the database before returning them. This update function will be called instead of the default update strategy, with the "data" and "type" arguments, which are respectively the database entry and the type of the database entry (either "guild" or "user"). The update function must return an object, this is the object that the DatabaseWrapper.getGuild() and DatabaseWrapper.getUser() methods will return. |
+
+**Example**
+```js
+//Context: In this example, the old user data model used to have its "boolean" property containing either 1 or 0, and we want to update it to either true or false
+new DatabaseWrapper(client, (data, type) => {
+    if (type === "guild") {
+        return data; 
+    } else {
+        data.boolean = data.boolean === 1 ? true : false;
+        return data;   
+    }
+});
+```
 
 <a name="DatabaseWrapper+init"></a>
 
