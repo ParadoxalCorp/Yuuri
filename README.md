@@ -1,5 +1,7 @@
 # Yuuri
 
+Note: This isn't released yet, see the Projects tab
+
 ## Tables of content
 
 * [Disclaimer](https://github.com/ParadoxalCorp/Yuuri/blob/master/README.md#disclaimer)
