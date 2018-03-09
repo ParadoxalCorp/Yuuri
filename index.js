@@ -23,11 +23,12 @@ class Yuuri extends Eris {
         this.maintenance = false;
         //A collection that will contain users in cooldown/near the cooldown
         this.ratelimited = new Collection();
-        this.prefixes = [`<@${config.botID}>`, `<@!${config.botID}`, config.prefix];
+        //This will be filled with mentions prefix once ready
+        this.prefixes = config.prefix ? [config.prefix] : [];
         this.commands = new Collection();
         this.aliases = new Collection();
         this.config = config;
-        this.database = new(require('./util/helpers/DatabaseWrapper'))(this);
+        this.database = process.argv.includes('--no-db') ? false : new(require('./util/helpers/DatabaseWrapper'))(this);
         this.refs = require('./util/helpers/references');
     }
 }
@@ -45,14 +46,6 @@ const client = new Yuuri(config.token, {
     //This part handle the connection to the database and setup the database if its the first run
     //Unless the --no-db parameter is specified when running the program
     if (!process.argv.includes('--no-db')) {
-        log.draft('connectingToDb', `Attempting to connect to the database server at ${config.database.host}:${config.database.port}`);
-        await client.database.connect()
-            .catch(async(err) => {
-                log.endDraft('connectingToDb', `Failed to connect to the database server: ${err}`, false);
-                await sleep(500);
-                process.exit(0);
-            });
-        log.endDraft('connectingToDb', `Successfully connected to the database at ${config.database.host}:${config.database.port}`);
         log.draft('settingDb', 'Setting up the database..');
         await client.database.createDatabase('data')
             .catch(err => {

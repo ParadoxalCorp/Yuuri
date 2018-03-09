@@ -54,19 +54,6 @@ Initialize the database wrapper, this will start the automatic progressive cachi
 
 **Kind**: instance method of [<code>DatabaseWrapper</code>](#DatabaseWrapper)
 **Returns**: <code>Promise.&lt;void&gt;</code> - - An error will be rejected if something fail when establishing the changes stream
-<a name="DatabaseWrapper+connect"></a>
-
-### databaseWrapper.connect([host], [port]) ⇒ <code>Promise.&lt;object&gt;</code>
-Establish a simple connection to a RethinkDB server
-
-**Kind**: instance method of [<code>DatabaseWrapper</code>](#DatabaseWrapper)
-**Returns**: <code>Promise.&lt;object&gt;</code> - - The established connection object
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| [host] | <code>string</code> | <code>&quot;config.database.host&quot;</code> | The host name to connect to |
-| [port] | <code>number</code> | <code>config.database.port</code> | The port of the host name to connect to |
-
 <a name="DatabaseWrapper+getGuild"></a>
 
 ### databaseWrapper.getGuild(id) ⇒ <code>Promise.&lt;object&gt;</code>

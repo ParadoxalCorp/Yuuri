@@ -19,8 +19,15 @@ class DatabaseWrapper {
      * });
      */
     constructor(client, updateFunc) {
-        this.conn = {};
-        this.rethink = require("rethinkdb");
+        this.rethink = require("rethinkdbdash")({
+            servers: [
+                { host: client.config.database.host, port: client.config.database.port }
+            ],
+            silent: true,
+            log: (message) => {
+                log.info(message);
+            }
+        });
         this.updateFunc = updateFunc;
         this.guildData = this.rethink.db('data').table('guilds');
         this.userData = this.rethink.db('data').table('users');
@@ -35,8 +42,8 @@ class DatabaseWrapper {
      */
     init() {
         return new Promise(async(resolve, reject) => {
-            const guildCursor = await this.guildData.changes({ squash: true, includeInitial: true, includeTypes: true }).run(this.conn).catch(err => reject(err));
-            const userCursor = await this.userData.changes({ squash: true, includeInitial: true, includeTypes: true }).run(this.conn).catch(err => reject(err));
+            const guildCursor = await this.guildData.changes({ squash: true, includeInitial: true, includeTypes: true }).run().catch(err => reject(err));
+            const userCursor = await this.userData.changes({ squash: true, includeInitial: true, includeTypes: true }).run().catch(err => reject(err));
 
             guildCursor.on('data', (data) => {
                 if (data.type === "remove") {
@@ -54,23 +61,17 @@ class DatabaseWrapper {
                 }
             });
 
-            this.conn.on('close', async() => {
-                log.warn('The connection with the database has been closed, commands using the database will be disabled until a successful re-connection has been made');
-                this.client.commands
-                    .filter(c => c.conf.requireDB)
-                    .forEach(c => c.conf.disabled = ":x: This command uses the database, however the database seems unavailable at the moment");
-                log.draft('reconnectingToDb', 'Reconnecting to the database...');
-                for (let reconnected = false; !reconnected; reconnected) {
-                    await sleep(15000);
-                    await this.connect()
-                        .then(() => {
-                            reconnected = true;
-                            this.client.commands
-                                .filter(c => c.conf.requireDB)
-                                .forEach(c => c.conf.disabled = false);
-                            return log.endDraft('reconnectingToDb', `Successfully reconnected to the database, commands have been enabled back`);
-                        })
-                        .catch();
+            this.rethink.getPoolMaster().on('healthy', healthy => {
+                if (!healthy) {
+                    log.warn('The connection with the database has been closed, commands using the database will be disabled until a successful re-connection has been made');
+                    this.client.commands
+                        .filter(c => c.conf.requireDB)
+                        .forEach(c => c.conf.disabled = ":x: This command uses the database, however the database seems unavailable at the moment");
+                } else {
+                    log.info(`The connection with the database at ${this.client.config.database.host}:${this.client.config.database.port} has been established`);
+                    this.client.commands
+                        .filter(c => c.conf.requireDB)
+                        .forEach(c => c.conf.disabled = false);
                 }
             });
         });
@@ -82,7 +83,7 @@ class DatabaseWrapper {
      * @param {number} [port=config.database.port] - The port of the host name to connect to
      * @returns {Promise<object>} - The established connection object
      */
-    connect(host = this.client.config.database.host, port = this.client.config.database.port) {
+    /*connect(host = this.client.config.database.host, port = this.client.config.database.port) {
         return new Promise(async(resolve, reject) => {
             this.rethink.connect({ host: host, port: port })
                 .then(conn => {
@@ -93,7 +94,7 @@ class DatabaseWrapper {
                     reject(err);
                 });
         });
-    }
+    }*/
 
     /**
      * Get a guild database entry
@@ -105,9 +106,9 @@ class DatabaseWrapper {
             if (this.guilds.has(id)) {
                 return resolve(this._updateDataModel(this.guilds.get(id), 'guild'));
             }
-            this.guildData.get(id).run(this.conn)
+            this.guildData.get(id).run()
                 .then(data => {
-                    resolve(this._updateDataModel(data, 'guild'));
+                    resolve(data ? this._updateDataModel(data, 'guild') : null);
                 })
                 .catch(err => {
                     reject(err);
@@ -126,9 +127,9 @@ class DatabaseWrapper {
             if (this.users.has(id)) {
                 return resolve(this._updateDataModel(this.users.get(id), 'user'));
             }
-            this.userData.get(id).run(this.conn)
+            this.userData.get(id).run()
                 .then(data => {
-                    resolve(this._updateDataModel(data, 'user'));
+                    resolve(data ? this._updateDataModel(data, 'user') : null);
                 })
                 .catch(err => {
                     reject(err);
@@ -137,6 +138,13 @@ class DatabaseWrapper {
         });
     }
 
+    /**
+     * The default update strategy, the custom update function, if any, is called from here as well
+     * @param {object} data - The data object to update
+     * @param {string} type - The type of this object (either "guild" or "user")
+     * @returns {object} - The updated data object
+     * @private
+     */
     _updateDataModel(data, type) {
         if (this.updateFunc) {
             return this.updateFunc(data, type);
@@ -159,7 +167,7 @@ class DatabaseWrapper {
     set(data, type) {
         return new Promise(async(resolve, reject) => {
             type = type === "guild" ? "guildData" : "userData";
-            this[type].get(data.id).replace(data, { returnChanges: "always" }).run(this.conn)
+            this[type].get(data.id).replace(data, { returnChanges: "always" }).run()
                 .then(result => {
                     resolve(result.changes[0].new_val);
                 })
@@ -176,11 +184,11 @@ class DatabaseWrapper {
      */
     createDatabase(name) {
         return new Promise(async(resolve, reject) => {
-            const databaseList = await this.rethink.dbList().run(this.conn).catch(err => Promise.reject(new Error(err)));
+            const databaseList = await this.rethink.dbList().run().catch(err => Promise.reject(new Error(err)));
             if (databaseList.includes(name)) {
                 resolve(`There is already an existing database with the name ${name}`);
             }
-            this.rethink.dbCreate(name).run(this.conn)
+            this.rethink.dbCreate(name).run()
                 .then(() => {
                     resolve(true);
                 })
@@ -198,11 +206,11 @@ class DatabaseWrapper {
      */
     createTable(name, databaseName) {
         return new Promise(async(resolve, reject) => {
-            const tableList = await this.rethink.db(databaseName).tableList().run(this.conn).catch(err => Promise.reject(new Error(err)));
+            const tableList = await this.rethink.db(databaseName).tableList().run().catch(err => Promise.reject(new Error(err)));
             if (tableList.includes(name)) {
                 resolve(`There is already a table with the name ${name} in the database ${databaseName}`);
             }
-            this.rethink.db(databaseName).tableCreate(name).run(this.conn)
+            this.rethink.db(databaseName).tableCreate(name).run()
                 .then(() => {
                     resolve(true);
                 })
