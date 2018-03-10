@@ -7,10 +7,10 @@ module.exports = {
     //The token of the bot application to connect to, it is required.
     token: "",
     database: {
-        //Unless the database is on another server, the host should be localhost
-        host: "localhost",
+        //Unless the database is on another server, the host should stay like this
+        host: "127.0.0.1",
         //The port should be the client driver port, not the administrative HTTP connection nor the intracluster one
-        port: 8080
+        port: 28015
     },
     //Additional API keys that the bot use for commands for example
     apiKeys: {
