@@ -29,6 +29,7 @@ class References {
     static userEntry(id) {
         return {
             id: id,
+            blacklisted: false
         };
     }
 }

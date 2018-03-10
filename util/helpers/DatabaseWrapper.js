@@ -1,5 +1,6 @@
+'use strict';
+
 const log = require('../modules/log');
-const sleep = require('../modules/sleep');
 const references = require('./references');
 
 class DatabaseWrapper {
@@ -169,6 +170,7 @@ class DatabaseWrapper {
             type = type === "guild" ? "guildData" : "userData";
             this[type].get(data.id).replace(data, { returnChanges: "always" }).run()
                 .then(result => {
+                    this[type === "guild" ? "guilds" : "users"].set(data.id, data);
                     resolve(result.changes[0].new_val);
                 })
                 .catch(err => {
