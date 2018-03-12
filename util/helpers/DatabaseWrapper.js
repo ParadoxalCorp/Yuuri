@@ -79,25 +79,6 @@ class DatabaseWrapper {
     }
 
     /**
-     * Establish a simple connection to a RethinkDB server
-     * @param {string} [host=config.database.host] - The host name to connect to
-     * @param {number} [port=config.database.port] - The port of the host name to connect to
-     * @returns {Promise<object>} - The established connection object
-     */
-    /*connect(host = this.client.config.database.host, port = this.client.config.database.port) {
-        return new Promise(async(resolve, reject) => {
-            this.rethink.connect({ host: host, port: port })
-                .then(conn => {
-                    this.conn = conn;
-                    resolve(conn);
-                })
-                .catch(err => {
-                    reject(err);
-                });
-        });
-    }*/
-
-    /**
      * Get a guild database entry
      * @param {string} id - The unique identifier of the guild to get
      * @returns {Promise<object>} - The guild entry object, or null if not in the database
@@ -152,7 +133,7 @@ class DatabaseWrapper {
         }
         const defaultDataModel = type === "guild" ? references.guildEntry(data.id) : references.userEntry(data.id);
         for (const key in data) {
-            if (defaultDataModel[key]) {
+            if (typeof defaultDataModel[key] !== "undefined") {
                 defaultDataModel[key] = data[key];
             }
         }
@@ -167,6 +148,9 @@ class DatabaseWrapper {
      */
     set(data, type) {
         return new Promise(async(resolve, reject) => {
+            if (!data || !type) {
+                return reject(`Missing arguments, both the data and type parameters are needed`);
+            }
             type = type === "guild" ? "guildData" : "userData";
             this[type].get(data.id).replace(data, { returnChanges: "always" }).run()
                 .then(result => {

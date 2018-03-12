@@ -21,11 +21,12 @@ class Command {
                     return reject(err);
                 }) :
                 false;
-            const prefixes = client.prefixes;
+            let prefixes = client.prefixes.map(p => p);
             if (guildEntry && guildEntry.prefix) {
                 prefixes.push(guildEntry.prefix);
+                prefixes = prefixes.filter(p => p !== client.config.prefix);
             }
-            if (!client.prefixes.filter(p => p === args[0])[0]) {
+            if (!prefixes.filter(p => p === args[0])[0]) {
                 return resolve(undefined);
             }
             return resolve(client.commands.get(args[1]) || client.commands.get(client.aliases.get(args[1])));
