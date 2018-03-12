@@ -1,9 +1,9 @@
 'use strict';
-
+/**
+ * Provide some utility methods to parse the args of a message, check the required permissions...
+ * @class Command
+ */
 class Command {
-    /**
-     * Provide some utility methods to parse the args of a message, check the required permissions...
-     */
     constructor() {}
 
     /**
@@ -78,9 +78,9 @@ class Command {
     hasChannelOverwrite(channel, member, permission) {
         const channelOverwrites = Array.from(channel.permissionOverwrites.values()).filter(co => typeof co.json[permission] !== "undefined" &&
             (co.id === member.id || member.roles.includes(co.id)));
-        if (!channelOverwrites.length) {
+        if (!channelOverwrites[0]) {
             return false;
-        } else if (channelOverwrites.filter(co => co.type === "user").size) {
+        } else if (channelOverwrites.filter(co => co.type === "user")[0]) {
             return channelOverwrites.filter(co => co.type === "user")[0];
         }
         return channelOverwrites.sort((a, b) => channel.guild.roles.get(b.id).position - channel.guild.roles.get(a.id).position)[0];

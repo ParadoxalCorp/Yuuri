@@ -1,7 +1,9 @@
-const log = require(`../util/modules/log`);
 const Command = new(require('../util/helpers/Command'));
 
 module.exports = async(client, message) => {
+    if (message.author.bot) {
+        return;
+    }
     const command = await Command.parseCommand(message, client);
     if (!command) {
         return;
