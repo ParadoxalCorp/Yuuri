@@ -30,6 +30,7 @@ class Yuuri extends Eris {
         this.config = config;
         this.database = process.argv.includes('--no-db') ? false : new(require('./util/helpers/DatabaseWrapper'))(this);
         this.refs = require('./util/helpers/references');
+        this.MessageCollector = new(require('./util/helpers/MessageCollector'))(this);
     }
 }
 

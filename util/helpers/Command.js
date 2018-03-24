@@ -86,6 +86,20 @@ class Command {
         }
         return channelOverwrites.sort((a, b) => channel.guild.roles.get(b.id).position - channel.guild.roles.get(a.id).position)[0];
     }
+
+    /**
+     * Try to resolve a role with IDs, names, partial usernames or mentions
+     * @param {object} options An object of options
+     * @prop {object} options.guild The guild to check the roles for
+     * @prop {string} options.text The text from which roles should be resolved
+     * @prop {boolean} [options.multiple=false] Whether multiple roles should be resolved (in case the input contains multiple roles resolvable), this will be less accurate
+     * @returns {Role|Collection<Role>} The resolved role, or a collection of resolved roles if options.multiple is true
+     */
+    getRoleResolvables(options = {}) {
+        if (!options.guild || !options.text) {
+            return new Error(`The options.guild and options.text parameters are required`);
+        }
+    }
 }
 
 module.exports = Command;
