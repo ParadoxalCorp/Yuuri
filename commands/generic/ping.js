@@ -16,7 +16,9 @@ class Ping extends Command {
             disabled: false,
             aliases: [],
             requirePerms: [],
-            guildOnly: false
+            guildOnly: false,
+            ownerOnly: false,
+            expectedArgs: []
         };
     }
 

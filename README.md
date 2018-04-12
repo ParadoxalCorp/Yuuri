@@ -13,4 +13,4 @@ This repository is public for transparency and learning purposes, no help will b
 
 _Yuuri_ is under **GNU General Public License v3.0** license, you may **not** use this in a public project without complying to all
 the license conditions (as in: Source has to be disclosed, the changes needs to be stated, this same license has to be used and finally the original work
-has to be credited) . 
+has to be credited). 

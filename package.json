@@ -1,7 +1,7 @@
 {
     "name": "yuuri",
-    "version": "1.0.0",
-    "description": "Yuuri - A modular discord bot framework",
+    "version": "4.0.0",
+    "description": "Yuuri - A modular eris discord bot framework",
     "main": "index.js",
     "author": "ParadoxOrigins",
     "repository": "github:ParadoxalCorp/Yuuri",
@@ -10,9 +10,11 @@
         "start": "node index.js"
     },
     "dependencies": {
+        "axios": "^0.18.0",
         "chalk": "^2.3.1",
         "draftlog": "^1.0.12",
         "eris": "^0.8.5",
-        "rethinkdb": "^2.3.3"
+        "eris-sharder": "^1.7.8",
+        "rethinkdbdash": "^2.3.31"
     }
 }
